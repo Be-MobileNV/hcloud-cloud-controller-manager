@@ -21,14 +21,15 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/appscode/go-hetzner"
 	"github.com/hetznercloud/hcloud-go/hcloud"
 	"k8s.io/kubernetes/pkg/cloudprovider"
 )
 
-func getCloudServerByName(c *hcloud.Client, name string) (server *hcloud.Server, err error) {
-	server, _, err = c.Server.GetByName(context.Background(), name)
+func (hc *HetznerClient) getCloudServerByName(name string) (server *hcloud.Server, err error) {
+	server, _, err = hc.cloudClient.Server.GetByName(context.Background(), name)
 	if err != nil {
 		return
 	}
@@ -39,8 +40,8 @@ func getCloudServerByName(c *hcloud.Client, name string) (server *hcloud.Server,
 	return
 }
 
-func getRobotServerByName(c *hetzner.Client, name string) (*hetzner.ServerSummary, error) {
-	summary, _, err := c.Server.ListServers()
+func (hc *HetznerClient) getRobotServerByName(name string) (*hetzner.ServerSummary, error) {
+	summary, err := hc.getRobotServers()
 	if err != nil {
 		return nil, err
 	}
@@ -53,8 +54,22 @@ func getRobotServerByName(c *hetzner.Client, name string) (*hetzner.ServerSummar
 	return nil, cloudprovider.InstanceNotFound
 }
 
-func getCloudServerByID(c *hcloud.Client, id int) (server *hcloud.Server, err error) {
-	server, _, err = c.Server.GetByID(context.Background(), id)
+func (hc *HetznerClient) getRobotServers() ([]*hetzner.ServerSummary, error) {
+	if hc.robotCache != nil && time.Now().Sub(hc.robotCacheLastUpdate) <= time.Minute*15 {
+		// Return from cache
+		return hc.robotCache, nil
+	}
+	summary, _, err := hc.robotClient.Server.ListServers()
+	if err != nil {
+		return nil, err
+	}
+	hc.robotCache = summary
+	hc.robotCacheLastUpdate = time.Now()
+	return hc.robotCache, nil
+}
+
+func (hc *HetznerClient) getCloudServerByID(id int) (server *hcloud.Server, err error) {
+	server, _, err = hc.cloudClient.Server.GetByID(context.Background(), id)
 	if err != nil {
 		return
 	}
@@ -65,8 +80,8 @@ func getCloudServerByID(c *hcloud.Client, id int) (server *hcloud.Server, err er
 	return
 }
 
-func getRobotServerByID(c *hetzner.Client, id int) (*hetzner.ServerSummary, error) {
-	summary, _, err := c.Server.ListServers()
+func (hc *HetznerClient) getRobotServerByID(id int) (*hetzner.ServerSummary, error) {
+	summary, err := hc.getRobotServers()
 	if err != nil {
 		return nil, err
 	}
