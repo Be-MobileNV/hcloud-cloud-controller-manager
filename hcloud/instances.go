@@ -92,6 +92,10 @@ func (i instances) InstanceExistsByProviderID(providerID string) (exists bool, e
 		return
 	}
 	exists = server != nil
+	if !exists {
+		// Node does not exists, but should not be removed, hybrid cloud, see https://github.com/kubernetes/kubernetes/pull/73171
+		exists = true
+	}
 	return
 }
 
