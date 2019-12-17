@@ -11,10 +11,10 @@ bin/%:
 	@go build -o bin/$* .
 
 container: build
-	docker build -t docker.be-mobile.biz:5000/hcloud-cloud-controller-manager:v1.2.0-test1 .
+	docker build -t $(DOCKER_REPO):$(VERSION) .
 
 release-container:
-	docker push docker.be-mobile.biz:5000/hcloud-cloud-controller-manager:v1.2.0-test1
+	docker push $(DOCKER_REPO):$(VERSION)
 
 test:
 	@./scripts/test.bash
