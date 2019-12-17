@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"os"
 
+	// Make sure to point to yourself to initialize and register
+	_ "github.com/Be-MobileNV/hcloud-cloud-controller-manager/hcloud"
 	"k8s.io/apiserver/pkg/util/flag"
 	"k8s.io/apiserver/pkg/util/logs"
 	"k8s.io/kubernetes/cmd/cloud-controller-manager/app"
